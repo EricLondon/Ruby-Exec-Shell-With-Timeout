@@ -6,7 +6,7 @@ require 'pty'
 
 class Exec_With_Timeout
 
-  def Exec_With_Timeout.main
+  def self.main
     begin
       Timeout.timeout @timeout do
         PTY.spawn @command do |r,w,p|
@@ -35,12 +35,12 @@ class Exec_With_Timeout
     @output
   end
 
-  def Exec_With_Timeout.exec(command, timeout)
+  def self.exec(command, timeout)
     @command = command
     @timeout = timeout
     @output = ""
 
-    Exec_With_Timeout.main
+    self.main
   end
 
 end
