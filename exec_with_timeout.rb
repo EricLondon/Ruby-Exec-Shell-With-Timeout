@@ -7,9 +7,13 @@ require 'pty'
 class Exec_With_Timeout
 
   def self.main
+    @pid = nil
     begin
       Timeout.timeout @timeout do
         PTY.spawn @command do |r,w,p|
+
+          @pid = p
+          Process.wait p
 
           loop do
 
@@ -30,6 +34,9 @@ class Exec_With_Timeout
         end
       end
     rescue Timeout::Error
+
+      Process.kill 9, @pid
+      Process.wait @pid
 
     end
     @output
