@@ -35,8 +35,11 @@ class Exec_With_Timeout
       end
     rescue Timeout::Error
 
-      Process.kill 9, @pid
-      Process.wait @pid
+      begin
+        Process.kill 9, @pid
+        Process.wait @pid
+      rescue
+      end
 
     end
     @output
