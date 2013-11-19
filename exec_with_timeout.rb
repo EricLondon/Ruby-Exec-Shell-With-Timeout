@@ -7,45 +7,54 @@ require 'pty'
 class Exec_With_Timeout
 
   def self.main
-    @pid = nil
-    begin
-      Timeout.timeout @timeout do
-        PTY.spawn @command do |r,w,p|
 
-          @pid = p
-          Process.wait p
+    begin
+
+      # spawn process
+      PTY.spawn @command do |r,w,pid|
+        @pid = pid
+        @read = r
+        @write = w
+
+        # start timeout
+        Timeout.timeout @timeout do
 
           loop do
 
+            # get output line
             begin
-              line = r.gets
+              line = @read.gets
               @output << line if !line.nil?
             rescue
             end
 
+            # check if process is still running
             begin
-              # check if child process is running
-              Process.getpgid p
-            rescue Errno::ESRCH => e
+              Process.getpgid @pid
+            rescue
               raise Timeout::Error
             end
 
           end
-        end
-      end
-    rescue Timeout::Error
 
+        end
+
+      end
+
+    # catch timeout
+    rescue Timeout::Error
       begin
         Process.kill 9, @pid
-        Process.wait @pid
       rescue
       end
-
     end
+
     @output
+
   end
 
   def self.exec(command, timeout)
+    @pid = nil
     @command = command
     @timeout = timeout
     @output = ""
